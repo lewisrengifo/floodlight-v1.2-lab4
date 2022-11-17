@@ -16,26 +16,25 @@ import org.projectfloodlight.openflow.protocol.OFType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-public class MACTracker implements IOFMessageListener, IFloodlightModule {
+public class MACTracker implements IOFMessageListener, IFloodlightModule, MACTrackerService {
     protected IFloodlightProviderService floodlightProvider;
     protected Set<Long> macAddresses;
     protected static Logger logger;
     protected IRestApiService restApiService;
 
+    public static final String MODULE_NAME = "mactracker";
+
     @Override
     public String getName() {
-        return MACTracker.class.getSimpleName();
+        return MODULE_NAME;
     }
 
     @Override
     public boolean isCallbackOrderingPrereq(OFType type, String name) {
-        return false;
+        return (type.equals(OFType.PACKET_IN) && name.equals("forwarding"));
     }
 
     @Override
@@ -68,12 +67,20 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule {
 
     @Override
     public Map<Class<? extends IFloodlightService>, IFloodlightService> getServiceImpls() {
-        return null;
+        // TODO Auto-generated method stub
+        Map<Class<? extends IFloodlightService>, IFloodlightService> m = new HashMap<Class<? extends IFloodlightService>, IFloodlightService>();
+        m.put(MACTrackerService.class, this);
+        return m;
     }
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleDependencies() {
-        return null;
+        Collection<Class<? extends IFloodlightService>> l =
+                new ArrayList<Class<? extends IFloodlightService>>();
+        l.add(IFloodlightProviderService.class);
+        //Agregamos IRestApiService como una dependencia
+        l.add(IRestApiService.class);
+        return l;
     }
 
     @Override
@@ -88,5 +95,10 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule {
     public void startUp(FloodlightModuleContext context) throws FloodlightModuleException {
         floodlightProvider.addOFMessageListener(OFType.PACKET_IN, this);
         restApiService.addRestletRoutable(new MACTrackerWebRoutable());
+    }
+
+    @Override
+    public Set<Long> getMacAddresses() {
+        return macAddresses;
     }
 }
