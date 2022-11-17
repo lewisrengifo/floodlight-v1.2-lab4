@@ -62,7 +62,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule {
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleServices() {
         Collection<Class<? extends IFloodlightService>> l = new ArrayList<Class<? extends IFloodlightService>>();
-        l.add(IFloodlightProviderService.class);
+        l.add(MACTrackerService.class);
         return l;
     }
 
